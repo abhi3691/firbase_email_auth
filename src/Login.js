@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, {useState, createContext} from 'react';
 import {View, Text, StyleSheet, TextInput, Button, Alert} from 'react-native';
-
 import auth from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function Login({navigation}) {
   const [email, setEmail] = useState('');
   const [Password, setPassword] = useState('');
@@ -12,6 +12,7 @@ export default function Login({navigation}) {
         .createUserWithEmailAndPassword(email, Password)
         .then(res => {
           console.log('response', res);
+          AsyncStorage.setItem('token', res.uid);
         })
         .catch(error => {
           console.log('error', error);
@@ -23,17 +24,21 @@ export default function Login({navigation}) {
   };
 
   const login = () => {
-    auth()
-      .signInWithEmailAndPassword(email, Password)
-      .then(res => {
-        console.log('response', res);
-        setResult(res);
-        navigation.navigate('Home', result);
-      })
-      .catch(error => {
-        console.log('error', error);
-        Alert.alert(error.message);
-      });
+    if (email && Password != '') {
+      auth()
+        .signInWithEmailAndPassword(email, Password)
+        .then(res => {
+          console.log('response', res);
+          setResult(res);
+          navigation.navigate('Home', result);
+        })
+        .catch(error => {
+          console.log('error', error);
+          Alert.alert(error.message);
+        });
+    } else {
+      Alert.alert('Both fields are mandatory');
+    }
   };
 
   return (
